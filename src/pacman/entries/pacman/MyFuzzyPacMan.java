@@ -39,8 +39,8 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 	 * @param range el intervalo en el que se pueden mover los valores
 	 * @param array los valores a fijar
 	 */
-	public MyFuzzyPacMan(ArrayList<Double> range, ArrayList<Double> array) {
-		System.out.println("Constructor MyFuzzyPacMan");
+	public MyFuzzyPacMan(double minimumRange, double maximumRange, Gene gene) {
+		System.out.println("\nConstructor MyFuzzyPacMan");
 		engine.setName("Fuzzy-PacMan");
 		
 		InputVariable inputVariable = new InputVariable();
@@ -48,10 +48,10 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		// The fuzzy input variable
 		inputVariable.setName("Ghost");
 		// The maximum input range (line 61 DataTuple.java)?)
-		inputVariable.setRange(range.get(0), range.get(1));
+		inputVariable.setRange(minimumRange, maximumRange);
 		// The fuzzy input values of the fuzzy input variable
-		inputVariable.addTerm(new Trapezoid("NEAR", array.get(0), array.get(1), array.get(2), array.get(3)));	// Cada uno de estos valores forma parte del array o individuo
-		inputVariable.addTerm(new Trapezoid("FAR", array.get(4),array.get(5), array.get(6), array.get(7)));	// Estos valores tambiém forman parte del array o individuo
+		inputVariable.addTerm(new Trapezoid("NEAR", gene.getChromosomeElement(0), gene.getChromosomeElement(1), gene.getChromosomeElement(2), gene.getChromosomeElement(3)));	// Cada uno de estos valores forma parte del array o individuo
+		inputVariable.addTerm(new Trapezoid("FAR", gene.getChromosomeElement(4),gene.getChromosomeElement(5), gene.getChromosomeElement(6), gene.getChromosomeElement(7)));	// Estos valores tambiém forman parte del array o individuo
 		engine.addInputVariable(inputVariable);
 		
 		
@@ -60,7 +60,7 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		// The fuzzy output variable (line 61 DataTuple.java)?)
 		outputVariable.setName("Action");
 		// The maximum output range
-		outputVariable.setRange(range.get(0), range.get(1));	// En este caso, los rangos coinciden, pero podría no ser así
+		outputVariable.setRange(minimumRange, maximumRange);	// En este caso, los rangos coinciden, pero podría no ser así
 		outputVariable.fuzzyOutput().setAggregation(new Maximum());
 		outputVariable.setDefuzzifier(new Centroid()); // <---
 		outputVariable.setDefaultValue(Double.NaN);

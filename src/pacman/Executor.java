@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Random;
@@ -25,6 +26,8 @@ import pacman.controllers.examples.RandomNonRevPacMan;
 import pacman.controllers.examples.RandomPacMan;
 import pacman.controllers.examples.StarterGhosts;
 import pacman.controllers.examples.StarterPacMan;
+import pacman.entries.pacman.Gene;
+import pacman.entries.pacman.GeneticAlgorithm;
 import pacman.entries.pacman.MyFuzzyPacMan;
 import pacman.entries.pacman.MyGeneticPacMan;
 import pacman.game.Game;
@@ -41,7 +44,8 @@ import static pacman.game.Constants.*;
 @SuppressWarnings("unused")
 public class Executor
 {
-	public static MyGeneticPacMan myGeneticPacMan;
+	//public static MyGeneticPacMan myGeneticPacMan;
+	public static GeneticAlgorithm geneticAlgorithm;
 	
 	/**
 	 * The main method. Several options are listed - simply remove comments to use the option you want.
@@ -55,12 +59,13 @@ public class Executor
 		final double RANGE_MINIMUM = 0.0;
 		final double RANGE_MAXIMUM = 150.0;
 		
-		myGeneticPacMan = new MyGeneticPacMan(RANGE_MINIMUM, RANGE_MAXIMUM);
+		//myGeneticPacMan = new MyGeneticPacMan(RANGE_MINIMUM, RANGE_MAXIMUM);
+		geneticAlgorithm = new GeneticAlgorithm(10, 0.0, 150.0);// TODO quitar el número mágico
 		
 		//run multiple games in batch mode - good for testing.
-		int numTrials=10000;
+		int numTrials=3;
 		// Cambiar el RandomPacMan por el MyGeneticPacMan
-		exec.runExperiment(myGeneticPacMan,new RandomGhosts(),numTrials);
+		exec.runExperiment(geneticAlgorithm,new RandomGhosts(),numTrials);
 		 
 		
 		/*
@@ -125,6 +130,7 @@ public class Executor
      */
     public void runExperiment(Controller<MOVE> pacManController,Controller<EnumMap<GHOST,MOVE>> ghostController,int trials)
     {
+    	/*
     	PrintWriter out = null;
 		try {
 			out = new PrintWriter("filename.txt");
@@ -132,68 +138,55 @@ public class Executor
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-    	double avgScore=0;
+		*/
     	
     	Random rnd=new Random(0);	// Semilla. NO TOCAR para hacer las pruebas
 		Game game = null;
-		double bestScore = 0;	// Para guardar la puntuación
-		ArrayList<Double> bestArray = new ArrayList<Double>();	// Array con la mejor combinación de parámetros después de todos los intentos (partidas)
 				
-		for(int i=0;i<trials;i++)
-		{						
-			// Si tenemos 100 intentos, vamos a darle 10 oportunidades a cada individuo, por ejemplo
-			// Cuando hayamos acabado los intentos de cada individuo y hayamos llegado a los 100 intentos,
-			// decidiremos si mutar o no TODO solo tengo un individuo?
-			
-			game=new Game(rnd.nextLong());
-			
-			while(!game.gameOver())
-			{
-				// Aquí es donde tengo que llamar al getMove de MyGeneticPacMan
-		        game.advanceGame(pacManController.getMove(game.copy(),System.currentTimeMillis()+DELAY),
-		        		ghostController.getMove(game.copy(),System.currentTimeMillis()+DELAY));
+		for(int round = 0; round < trials; round++){
+			System.out.println("\n---------- Comienzo de la partida "+ round + " ----------");
+			for(int i=0; i < geneticAlgorithm.getPopulationSize();i++)
+			{						
+				geneticAlgorithm.setGenerationCount(i);
+				
+				// Set the gene that we are going to try
+				geneticAlgorithm.setGeneIndex(geneticAlgorithm.getGenerationCount());
+				
+				game=new Game(rnd.nextLong());
+				
+				while(!game.gameOver())
+				{
+			        game.advanceGame(pacManController.getMove(game.copy(),System.currentTimeMillis()+DELAY),
+			        		ghostController.getMove(game.copy(),System.currentTimeMillis()+DELAY));
+				}
+				
+				System.out.println("Game Over");
+				// Here we keep track of the total score through all rounds
+				geneticAlgorithm.addAverageFitness(game.getScore());
+				
+				// Show current generation number
+				System.out.println("Partida: " + geneticAlgorithm.getGenerationCount());
+				System.out.println("Fitness conseguido: " + game.getScore());
+				
+				// Save the gene fitness (its score), there is no need to save the chromosome because we have it already saved
+				geneticAlgorithm.setGene(game.getScore());
+				
+				System.out.println();
+				
+				//out.println(game.getScore());
 			}
-			
-			System.out.println("Game Over");
-			avgScore+=game.getScore();
-			
-			System.out.println("Intento (partida): " + i);
-			
-			// Tras cada intento (partida) mostrar la puntuación anterior y actual
-			// Decidimos si mutar aquí, al acabar la partida
-			/////// System.out.println("Puntuacion mejor hasta ahora: " + bestScore);
-			/////// System.out.println("Puntuacion conseguida: " + game.getScore());
-			
-			// Miro si la puntuación a mejorado con respecto a la partida anterior
-			// Si es así, me guardo el array como mejor combianción
-			// Si no, no hace falta guardarlo
-			if(game.getScore() < bestScore) {
-				/////// System.out.println("Puntuación no mejorada. DESCARTANDO array!!!");
-			}else if(game.getScore() > bestScore) {
-				/////// System.out.println("Puntuación mejorada. GUARDANDO array!!!");
-				bestScore = game.getScore();
-				bestArray = (ArrayList<Double>) myGeneticPacMan.getArray().clone();	// Se clona para evitar que se modifique la referencia más adelante con la mutación
-			}
-			
-			// Muto después de cada partida
-			/////// System.out.println("Array usado: " + myGeneticPacMan.getArray());
-			myGeneticPacMan.mutate(1);
-			/////// System.out.println("Mejor array hasta ahora: " + bestArray);
-			/////// System.out.println("Array a usar: " + myGeneticPacMan.getArray());
-			System.out.println();
-			
-			out.println(game.getScore());
+		
+			// Evaluate generation and produce the next one
+			System.out.println("---------- Resumen de la partida "+ round + " ----------\n");
+			geneticAlgorithm.evaluateGeneration();
+			geneticAlgorithm.produceNextGeneration(0, 2);
+			// Here, the children are created and put into the population
+			// PUES YA ESTARÍA
 		}
 		
-		System.out.println("\nIntentos realizados: " + trials);
-		System.out.println("Puntuación total: " + avgScore);
-		System.out.println("Puntuación media: " + avgScore/trials);
-		
-		System.out.println("Puntuacion mejor hasta ahora: " + bestScore);
-		System.out.println("Array a usar: " + myGeneticPacMan.getArray());
-		
-		out.close();
+		System.out.println("\nFitness total: " + geneticAlgorithm.getAverageFitness());
+		System.out.println("Fitness medio: " + geneticAlgorithm.getAverageFitness()/geneticAlgorithm.getGenerationCount());
+		//out.close();
     }
     
     

@@ -29,6 +29,8 @@ public class MyGeneticPacMan extends Controller<MOVE>
 	private ArrayList<Double> array = new ArrayList<Double>();	// Array representando el individuo con los diferentes valores para el motor fuzzy
 	private ArrayList<Double> range = new ArrayList<Double>();	// Array con los valores mínimo y máximo del rango en el que se pueden mover los valores, en este caso, la distancia, [0, 150]
 	
+	private ArrayList<ArrayList<Double>> poblacion = new ArrayList<ArrayList<Double>>();	// La población de individuos
+	
 	private MyFuzzyPacMan myFuzzyPacMan;
 	
 	/**
@@ -39,11 +41,11 @@ public class MyGeneticPacMan extends Controller<MOVE>
 	public MyGeneticPacMan(double rangeMinimum, double rangeMaximum) {
 		System.out.println("Constructor MyGeneticPacMan");
 		for(double i = 0; i < NUMERO_PARAMETROS; i++) {
-			array.add(i + 1.0);	// Por ahora, a 0. Se pueden probar diferentes inicializaciones
+			array.add(i + 1.0);	// Inicializar aleatoriamente
 		}
 		range.add(rangeMinimum);
 		range.add(rangeMaximum);
-		myFuzzyPacMan = new MyFuzzyPacMan(range, array);
+		//myFuzzyPacMan = new MyFuzzyPacMan(range, array);
 	}
 	
 	public MOVE getMove(Game game, long timeDue) 

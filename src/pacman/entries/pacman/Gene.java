@@ -55,8 +55,8 @@ public class Gene {
     	double randomValue = 0;
     	
 		for(int i = 0; i < GeneticAlgorithm.CHROMOSOME_SIZE; i++) {
-			randomValue = new Random().nextDouble() * 150.0;	// TODO quitar número mágico que indica el rango (150.0)
-			mChromosome[i] = BigDecimal.valueOf(randomValue).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();	// TODO quitar el número mágico que indica el rango
+			randomValue = new Random().nextDouble() * 150.0;
+			mChromosome[i] = randomValue;
 		}
 		
 		System.out.println("Id: " + id);
@@ -103,7 +103,7 @@ public class Gene {
     }
     
     /***
-     * Uniform crossover. We don't divie de chromosome into segments, rather
+     * Uniform crossover. We don't divide the chromosome into segments, rather
      * we treat each gene separately. We use a mask that contains 0s and 1s
      * and we choose a gene from one parent or another base on the value of
      * the mask for the position of the gene in the chromosome
@@ -159,7 +159,6 @@ public class Gene {
     		randomValue = new Random().nextDouble();	// [low, high)
     		randomValue = range.get(0) + (randomValue * (range.get(1) - range.get(0)));
     		/////// System.out.println("Gene " + i + ": " + randomValue);
-    		randomValue = BigDecimal.valueOf(randomValue).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();	// Redondeamos a dos decimales
     		result.get(0).setChromosomeElement(i, randomValue);
     	}
     	
@@ -171,7 +170,6 @@ public class Gene {
     		randomValue = new Random().nextDouble();	// [low, high)
     		randomValue = range.get(0) + (randomValue * (range.get(1) - range.get(0)));
     		/////// System.out.println("Gene " + i + ": " + randomValue);
-    		randomValue = BigDecimal.valueOf(randomValue).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
     		result.get(1).setChromosomeElement(i, randomValue);
     	}
     	
@@ -208,10 +206,6 @@ public class Gene {
     		x = r * gene0 + (1.0 - r) * gene1;
     		y = r * gene1 + (1.0 - r) * gene0;
     		
-    		// Round numbers
-    		x = BigDecimal.valueOf(x).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-    		y = BigDecimal.valueOf(y).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-    		
     		// Define offspring values
     		result.get(0).setChromosomeElement(i, x);
     		result.get(1).setChromosomeElement(i, y);
@@ -236,8 +230,8 @@ public class Gene {
 			randomFullResetting();
 			break;
 		case 1:
-			System.out.println("Operador de mutacion: Random Gene Resetting");
-			randomGeneResetting();
+			System.out.println("Operador de mutacion: Uniforme");
+			uniformMutation();
 			break;
 		case 2:
 			System.out.println("Operador de mutacion: Swap Mutation");
@@ -301,7 +295,7 @@ public class Gene {
 	/***
 	 * A valid random value is assigned to a randomly chosen gene
 	 */
-	public void randomGeneResetting() {
+	public void uniformMutation() {
 		int randomGeneIndex;	// The gen index to reset
 		double randomValue;	// The value to reset the gen to
 		

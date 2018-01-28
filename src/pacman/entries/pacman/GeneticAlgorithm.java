@@ -9,6 +9,7 @@ import pacman.controllers.Controller;
 import pacman.game.Constants.MOVE;
 import pacman.game.Game;
 
+import java.beans.VetoableChangeSupport;
 import java.math.BigDecimal;
 import java.util.ArrayList;     // arrayLists are more versatile than arrays
 import java.util.Arrays;
@@ -25,7 +26,7 @@ import java.util.Arrays;
 
 public class GeneticAlgorithm extends Controller<MOVE>{
     // --- constants
-    static int CHROMOSOME_SIZE=12;	// Number of parameters to try in the Fuzzy Logic Controler
+    static int CHROMOSOME_SIZE=14;	// Number of parameters to try in the Fuzzy Logic Controler
     static int POPULATION_SIZE=10;	// Number of individuals or genes
     static double RANGE_MIN=0.0;	// Minimum range for the parameters
     static double RANGE_MAX=150.0;	// Maximum range for the parameters
@@ -41,8 +42,6 @@ public class GeneticAlgorithm extends Controller<MOVE>{
     
     //////// For use in Executor.java
     double avgFitness=0.f;
-    double minFitness=Float.POSITIVE_INFINITY;
-	double maxFitness=Float.NEGATIVE_INFINITY;
     int generationCount = 0;
     
     private ArrayList<Double> range = new ArrayList<Double>();
@@ -82,10 +81,29 @@ public class GeneticAlgorithm extends Controller<MOVE>{
      * behavior, the phenotype may need to be used in a full simulation before getting
      * evaluated (e.g based on its performance)
      */
-    public void evaluateGeneration(){
-        for(int i = 0; i < mPopulation.size(); i++){
-        	System.out.println("Fitness del individuo " + i + ": " + mPopulation.get(i).getFitness());
-        }
+    public double evaluateGeneration(){
+        /////// for(int i = 0; i < mPopulation.size(); i++){
+    	/////// System.out.println("Fitness del individuo " + i + ": " + mPopulation.get(i).getFitness());
+    	/////// }
+        
+        // Select the individual with the best fitness
+        
+        // Make a copy because we want to keep the original one
+        ArrayList<Gene> mPopulationCopy = new ArrayList<Gene>(mPopulation);
+	    	
+		// Sort by fitness in descending order
+		Collections.sort(mPopulationCopy, new Comparator<Gene>() {
+			@Override
+			public int compare(Gene g1, Gene g2) {
+				return (int) (g2.getFitness() - g1.getFitness());
+			}
+		});
+		
+		/////// printGeneArrayList(mPopulationCopy);
+		
+		/////// System.out.println("\nMejor individuo de la partida: " + mPopulationCopy.get(0).getPhenotype());
+		
+		return mPopulationCopy.get(0).getFitness();
     }
     /**
      * With each gene's fitness as a guide, chooses which genes should mate and produce offspring.
@@ -94,21 +112,19 @@ public class GeneticAlgorithm extends Controller<MOVE>{
      * If you want to use mutation, this function is where any mutation chances are rolled and mutation takes place.
      */
     public void produceNextGeneration(int selectionMethod, int crossoverMethod){
-    	System.out.println("\nProducir nueva generacion");
-    	System.out.println("Seleccionar progenitores");
+    	/////// System.out.println("\nProducir nueva generacion");
+    	/////// System.out.println("Seleccionar progenitores");
     	ArrayList<Gene> parents = null;	// The parents
     	ArrayList<Gene> offspring = null;	// The children
     	
     	switch(selectionMethod) {
     	case 0:
     		System.out.println("Metodo de seleccion: Ranking");
-    		parents = rankSelection();
+    		// parents = rankSelection();
     		break;
     	case 1:
     		System.out.println("Metodo de seleccion: Torneo");
     		parents = tournamentSelection();
-        	System.out.println("Padres: ");
-        	printGeneArrayList(parents);
     		break;
     	case 2:
     		System.out.println("Metodo de seleccion: Ruleta");
@@ -128,7 +144,7 @@ public class GeneticAlgorithm extends Controller<MOVE>{
 		/////// printGeneArrayList(offspring);
 		if(randomChild == 0) {
 			System.out.println("Mutando hijo 1");
-			offspring.get(0).mutate(4);
+			offspring.get(0).mutate(4);	// ([0,4])
 		}else if(randomChild == 1) {
 			System.out.println("Mutando hijo 2");
 			offspring.get(1).mutate(4);
@@ -139,10 +155,32 @@ public class GeneticAlgorithm extends Controller<MOVE>{
 		
     	replace(parents, offspring);
     	
-    	System.out.println("\nPoblacion actual (cromosoma/fitness)");
+    	/////// System.out.println("\nPoblacion actual (cromosoma/fitness)");
     	
-    	printGeneArrayList(mPopulation);
+    	/////// printGeneArrayList(mPopulation);
+    }
+    
+    /***
+     * Select the individual with the best fitness
+     * @return the phenotype of the individual with best fitness
+     */
+    public String selectBestIndividual() {
+        // Make a copy because we want to keep the original one
+        ArrayList<Gene> mPopulationCopy = new ArrayList<Gene>(mPopulation);
+	    	
+		// Sort by fitness in descending order
+		Collections.sort(mPopulationCopy, new Comparator<Gene>() {
+			@Override
+			public int compare(Gene g1, Gene g2) {
+				return (int) (g2.getFitness() - g1.getFitness());
+			}
+		});
+		
+		/////// printGeneArrayList(mPopulationCopy);
     	
+    	System.out.println("\nMejor individuo: " + mPopulationCopy.get(0).getPhenotype());
+    	
+    	return mPopulationCopy.get(0).getPhenotype();
     }
     
     /***
@@ -252,6 +290,7 @@ public class GeneticAlgorithm extends Controller<MOVE>{
     }
 
 
+    
     /***
      * Round all values in the chromosome to 2 decimals
      * @param list the list to round its values

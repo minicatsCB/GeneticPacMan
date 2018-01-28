@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -59,12 +60,11 @@ public class Executor
 		final double RANGE_MINIMUM = 0.0;
 		final double RANGE_MAXIMUM = 150.0;
 		
-		//myGeneticPacMan = new MyGeneticPacMan(RANGE_MINIMUM, RANGE_MAXIMUM);
-		geneticAlgorithm = new GeneticAlgorithm(10, 0.0, 150.0);// TODO quitar el número mágico
+		geneticAlgorithm = new GeneticAlgorithm(10, RANGE_MINIMUM, RANGE_MAXIMUM);
 		
 		//run multiple games in batch mode - good for testing.
-		int numTrials=3;
-		// Cambiar el RandomPacMan por el MyGeneticPacMan
+		int numTrials=1000;
+		
 		exec.runExperiment(geneticAlgorithm,new RandomGhosts(),numTrials);
 		 
 		
@@ -130,7 +130,6 @@ public class Executor
      */
     public void runExperiment(Controller<MOVE> pacManController,Controller<EnumMap<GHOST,MOVE>> ghostController,int trials)
     {
-    	/*
     	PrintWriter out = null;
 		try {
 			out = new PrintWriter("filename.txt");
@@ -138,13 +137,13 @@ public class Executor
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		*/
     	
     	Random rnd=new Random(0);	// Semilla. NO TOCAR para hacer las pruebas
 		Game game = null;
+		
+		double bestIndividualFitness = 0;
 				
 		for(int round = 0; round < trials; round++){
-			System.out.println("\n---------- Comienzo de la partida "+ round + " ----------");
 			for(int i=0; i < geneticAlgorithm.getPopulationSize();i++)
 			{						
 				geneticAlgorithm.setGenerationCount(i);
@@ -160,33 +159,33 @@ public class Executor
 			        		ghostController.getMove(game.copy(),System.currentTimeMillis()+DELAY));
 				}
 				
-				System.out.println("Game Over");
-				// Here we keep track of the total score through all rounds
-				geneticAlgorithm.addAverageFitness(game.getScore());
+				/////// System.out.println("Game Over");
 				
 				// Show current generation number
-				System.out.println("Partida: " + geneticAlgorithm.getGenerationCount());
-				System.out.println("Fitness conseguido: " + game.getScore());
+				/////// System.out.println("Partida: " + geneticAlgorithm.getGenerationCount());
+				/////// System.out.println("Fitness conseguido: " + game.getScore());
 				
 				// Save the gene fitness (its score), there is no need to save the chromosome because we have it already saved
 				geneticAlgorithm.setGene(game.getScore());
 				
-				System.out.println();
-				
-				//out.println(game.getScore());
+				/////// System.out.println();
 			}
 		
 			// Evaluate generation and produce the next one
-			System.out.println("---------- Resumen de la partida "+ round + " ----------\n");
-			geneticAlgorithm.evaluateGeneration();
-			geneticAlgorithm.produceNextGeneration(0, 2);
+			System.out.println("\n---------- Resumen de la partida "+ round + " ----------");
+			bestIndividualFitness = geneticAlgorithm.evaluateGeneration();
+			out.println(bestIndividualFitness);
+			System.out.println("\n---------- Comienzo de la partida "+ (round + 1) + " ----------");
+			// Here we keep track of the total score through all rounds
+			geneticAlgorithm.addAverageFitness(bestIndividualFitness);
+			geneticAlgorithm.produceNextGeneration(1, 2);	// (1, [0,2])
 			// Here, the children are created and put into the population
 			// PUES YA ESTARÍA
 		}
 		
-		System.out.println("\nFitness total: " + geneticAlgorithm.getAverageFitness());
-		System.out.println("Fitness medio: " + geneticAlgorithm.getAverageFitness()/geneticAlgorithm.getGenerationCount());
-		//out.close();
+		out.println(geneticAlgorithm.selectBestIndividual());
+		
+		out.close();
     }
     
     

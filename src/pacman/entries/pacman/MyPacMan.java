@@ -1,7 +1,14 @@
 package pacman.entries.pacman;
 
+import pacman.controllers.Controller;
+import pacman.game.Constants.DM;
+import pacman.game.Constants.GHOST;
+import pacman.game.Constants.MOVE;
+import pacman.game.Game;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -22,25 +29,21 @@ import com.fuzzylite.term.Triangle;
 import com.fuzzylite.variable.InputVariable;
 import com.fuzzylite.variable.OutputVariable;
 
-import pacman.game.Game;
-import pacman.controllers.Controller;
-import pacman.game.Constants.DM;
-import pacman.game.Constants.GHOST;
-import pacman.game.Constants.MOVE;
-
-public class MyFuzzyPacMan extends Controller<MOVE>{
+/*
+ * This is the class you need to modify for your entry. In particular, you need to
+ * fill in the getAction() method. Any additional classes you write should either
+ * be placed in this package or sub-packages (e.g., game.entries.pacman.mypackage).
+ */
+public class MyPacMan extends Controller<MOVE>
+{
 	private MOVE myMove = MOVE.NEUTRAL;
 	Engine engine = new Engine();	// Our Fuzzy Logic engine
 	private EnumMap<GHOST, MOVE> myMoves = new EnumMap<GHOST, MOVE>(GHOST.class);
 	
-	/***
+	/*
 	 * The Fuzzy Logic engine is set up in the constructor
-	 * Establece los parámetros que le manda el genético
-	 * @param range el intervalo en el que se pueden mover los valores
-	 * @param array los valores a fijar
-	 */
-	public MyFuzzyPacMan(double minimumRange, double maximumRange, Gene gene) {
-		/////// System.out.println("\nConstructor MyFuzzyPacMan");
+	 * */
+	public MyPacMan() {
 		engine.setName("Fuzzy-PacMan");
 		
 		InputVariable inputVariable = new InputVariable();
@@ -48,10 +51,10 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		// The fuzzy input variable
 		inputVariable.setName("Ghost");
 		// The maximum input range (line 61 DataTuple.java)?)
-		inputVariable.setRange(minimumRange, maximumRange);
+		inputVariable.setRange(0.000, 150.000);
 		// The fuzzy input values of the fuzzy input variable
-		inputVariable.addTerm(new Trapezoid("NEAR", gene.getChromosomeElement(0), gene.getChromosomeElement(1), gene.getChromosomeElement(2), gene.getChromosomeElement(3)));	// Cada uno de estos valores forma parte del array o individuo
-		inputVariable.addTerm(new Trapezoid("FAR", gene.getChromosomeElement(4),gene.getChromosomeElement(5), gene.getChromosomeElement(6), gene.getChromosomeElement(7)));	// Estos valores tambiém forman parte del array o individuo
+		inputVariable.addTerm(new Trapezoid("NEAR", 0.000, 0.000, 25.000, 50.000));
+		inputVariable.addTerm(new Trapezoid("FAR", 25.000,50.000, 75.000, 150.000));
 		engine.addInputVariable(inputVariable);
 		
 		
@@ -60,15 +63,15 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		// The fuzzy output variable (line 61 DataTuple.java)?)
 		outputVariable.setName("Action");
 		// The maximum output range
-		outputVariable.setRange(minimumRange, maximumRange);	// En este caso, los rangos coinciden, pero podría no ser así
+		outputVariable.setRange(0.000, 150.000);
 		outputVariable.fuzzyOutput().setAggregation(new Maximum());
 		outputVariable.setDefuzzifier(new Centroid()); // <---
 		outputVariable.setDefaultValue(Double.NaN);
 		outputVariable.setLockValueInRange(false);
 		outputVariable.setLockPreviousValue(false);
 		// The fuzzy output value of the fuzzy output variable
-		outputVariable.addTerm(new Triangle("RUN", gene.getChromosomeElement(8), gene.getChromosomeElement(9), gene.getChromosomeElement(10)));	// Este valor también forma parte del array o individuo
-		outputVariable.addTerm(new Triangle("EATPILLS", gene.getChromosomeElement(11), gene.getChromosomeElement(12), gene.getChromosomeElement(13)));	// Este valor también forma parte del array o individuo
+		outputVariable.addTerm(new Constant("RUN", 25.000));
+		outputVariable.addTerm(new Triangle("EATPILLS", 50.000, 75.000, 150.000));
 		engine.addOutputVariable(outputVariable);
 		
 		
@@ -90,7 +93,6 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 	Matcher oMatcher, mMatcher;
 	public MOVE getMove(Game game, long timeDue) 
 	{
-		/////// System.out.println("getMove MyFuzzyPacMan");
 		//Place your game logic here to play the game as Ms Pac-Man
 		
 		// Save the distance to each ghost in a GHOST/DISTANCE dictionary
@@ -104,7 +106,7 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		
 		// Choose the closest ghost distance and pass it to the fuzzy logic engine
 		Entry<GHOST, Double> closestGhostDistancePair = getMinimumGhostDistancePair(ghostsDistanceDictionary);
-		/////// System.out.println("Closest ghost: " + getMinimumGhostDistancePair(ghostsDistanceDictionary));
+		System.out.println("Closest ghost: " + getMinimumGhostDistancePair(ghostsDistanceDictionary));
 		engine.setInputValue("Ghost", closestGhostDistancePair.getValue());
 		
 		// Engine, work!!
@@ -112,7 +114,7 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		
 		// But the engine give as the result fuzzified, so we need to defuzzify it
 		OutputVariable runOutput = engine.getOutputVariable("Action");	
-		/////// System.out.println("All: " + runOutput.fuzzyOutputValue()); // This returns a string with each action and its membership value
+		System.out.println("All: " + runOutput.fuzzyOutputValue()); // This returns a string with each action and its membership value
 		
 		// Choose the action with the highest membership value
 		String s = getHighestActivatedTerm(runOutput.fuzzyOutputValue());
@@ -120,28 +122,22 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		// Last, map the the action to do to a PacMan MOVE
 		int pacmanCurrentNodeIndex = game.getPacmanCurrentNodeIndex();
 		if(s.equals("RUN")) {
-			/////// System.out.println("The ghost is near. RUUUUUUN!");
+			System.out.println("The ghost is near. RUUUUUUN!");
 			int closestGhostNodeIndex = game.getGhostCurrentNodeIndex(closestGhostDistancePair.getKey());
 			MOVE nextMoveAwayFromTarget = game.getNextMoveAwayFromTarget(pacmanCurrentNodeIndex, closestGhostNodeIndex, DM.EUCLID);
-			/////// System.out.println("Next move away: " + nextMoveAwayFromTarget);
+			System.out.println("Next move away: " + nextMoveAwayFromTarget);
 			return nextMoveAwayFromTarget;
 		}
 		else if(s.equals("EATPILLS")) {
-			/////// System.out.println("The ghost is far. EAAAAAAT!");
-			MOVE nextMoveTowardsTarget = MOVE.NEUTRAL;
+			System.out.println("The ghost is far. EAAAAAAT!");
 			int[] pillCurrentNodeIndex = game.getActivePillsIndices();
-			// Check if there are pills available in the level
-			if(pillCurrentNodeIndex.length != 0) {
-				int closestPillNodeIndex = game.getClosestNodeIndexFromNodeIndex(game.getPacmanCurrentNodeIndex(), pillCurrentNodeIndex, DM.EUCLID);
-				nextMoveTowardsTarget = game.getNextMoveTowardsTarget(pacmanCurrentNodeIndex, closestPillNodeIndex, DM.EUCLID);	
-			}else {
-				System.out.println("There are not pills available in this level!");
-			}
-			/////// System.out.println("Next move towards: " + nextMoveTowardsTarget);
+			int closestPillNodeIndex = game.getClosestNodeIndexFromNodeIndex(game.getPacmanCurrentNodeIndex(), pillCurrentNodeIndex, DM.EUCLID);
+			MOVE nextMoveTowardsTarget = game.getNextMoveTowardsTarget(pacmanCurrentNodeIndex, closestPillNodeIndex, DM.EUCLID);
+			System.out.println("Next move towards: " + nextMoveTowardsTarget);
 			return nextMoveTowardsTarget;
 		}
 		
-		/////// System.out.println("\n");
+		System.out.println("\n");
 		
 		return myMove;
 	}
@@ -227,4 +223,5 @@ public class MyFuzzyPacMan extends Controller<MOVE>{
 		
 		return s;
 	}
+	
 }

@@ -30,7 +30,6 @@ import pacman.controllers.examples.StarterPacMan;
 import pacman.entries.pacman.Gene;
 import pacman.entries.pacman.GeneticAlgorithm;
 import pacman.entries.pacman.MyFuzzyPacMan;
-import pacman.entries.pacman.MyGeneticPacMan;
 import pacman.game.Game;
 import pacman.game.GameView;
 
@@ -63,7 +62,7 @@ public class Executor
 		geneticAlgorithm = new GeneticAlgorithm(10, RANGE_MINIMUM, RANGE_MAXIMUM);
 		
 		//run multiple games in batch mode - good for testing.
-		int numTrials=1000;
+		int numTrials=10;
 		
 		exec.runExperiment(geneticAlgorithm,new RandomGhosts(),numTrials);
 		 
@@ -134,11 +133,10 @@ public class Executor
 		try {
 			out = new PrintWriter("filename.txt");
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	
-    	Random rnd=new Random(0);	// Semilla. NO TOCAR para hacer las pruebas
+    	Random rnd=new Random(0);
 		Game game = null;
 		
 		double bestIndividualFitness = 0;
@@ -180,7 +178,6 @@ public class Executor
 			geneticAlgorithm.addAverageFitness(bestIndividualFitness);
 			geneticAlgorithm.produceNextGeneration(1, 2);	// (1, [0,2])
 			// Here, the children are created and put into the population
-			// PUES YA ESTARÍA
 		}
 		
 		out.println(geneticAlgorithm.selectBestIndividual());
@@ -189,7 +186,7 @@ public class Executor
     }
     
     
-    // Copia de seguridad
+    // Backup of original runExperiment() method
     /*
     public void runExperiment(Controller<MOVE> pacManController,Controller<EnumMap<GHOST,MOVE>> ghostController,int trials)
     {
